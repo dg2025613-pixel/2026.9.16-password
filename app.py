@@ -244,15 +244,13 @@ def stage2():
 
     # 계산 도우미 (아핀 복호화 계산기)
     with st.expander("🧮 아핀 복호화 계산기 (도구)"):
-        st.markdown("암호문 글자 하나씩 넣고 계산해보세요")
-        letter = st.text_input("암호 글자 1개 입력", max_chars=1, key="affine_calc_letter").upper()
-        if letter and letter.isalpha():
-            a_inv = mod_inverse(STAGE2_A, 26)
-            c_num = ord(letter) - ord('A')
-            m_num = (a_inv * (c_num - STAGE2_B)) % 26
-            result_letter = chr(m_num + ord('A'))
-            st.success(f"'{letter}' → 원래 글자: '{result_letter}'")
-
+    st.markdown("암호 글자를 숫자로 바꿔서(A=0, B=1, ... Z=25) 입력하세요")
+    c_num = st.number_input("암호 숫자 입력 (0~25)", min_value=0, max_value=25, step=1, key="affine_calc_num")
+    if st.button("계산하기", key="affine_calc_btn"):
+        a_inv = mod_inverse(STAGE2_A, 26)
+        m_num = (a_inv * (c_num - STAGE2_B)) % 26
+        result_letter = chr(int(m_num) + ord('A'))
+        st.success(f"숫자 {c_num} → 원래 글자: '{result_letter}'")
     col1, col2 = st.columns([3, 1])
     with col1:
         answer = st.text_input("정답 입력 (영어 대문자)", key="stage2_input").upper().strip()
@@ -302,29 +300,22 @@ def stage3():
 
     # 계산 도우미 (힐 복호화 계산기)
     with st.expander("🧮 힐 복호화 계산기 (도구) - 꼭 사용하세요!"):
-        st.markdown("암호문에서 2글자씩 짝지어 입력하세요")
+    st.markdown("암호문 2글자를 각각 숫자로 바꿔서(A=0, B=1, ... Z=25) 입력하세요")
 
-        col_a, col_b = st.columns(2)
-        with col_a:
-            letter1 = st.text_input("글자 1", max_chars=1, key="hill_calc_l1").upper()
-        with col_b:
-            letter2 = st.text_input("글자 2", max_chars=1, key="hill_calc_l2").upper()
+    col_a, col_b = st.columns(2)
+    with col_a:
+        c1 = st.number_input("숫자 1 (0~25)", min_value=0, max_value=25, step=1, key="hill_calc_n1")
+    with col_b:
+        c2 = st.number_input("숫자 2 (0~25)", min_value=0, max_value=25, step=1, key="hill_calc_n2")
 
-        if letter1 and letter2 and letter1.isalpha() and letter2.isalpha():
-            from utils import matrix_mod_inverse
-
-            inv_matrix = matrix_mod_inverse(STAGE3_KEY)
-
-            c1 = ord(letter1) - ord('A')
-            c2 = ord(letter2) - ord('A')
-
-            pair = np.array([[c1], [c2]])
-            result = np.dot(inv_matrix, pair) % 26
-
-            r1 = chr(int(result[0][0]) + ord('A'))
-            r2 = chr(int(result[1][0]) + ord('A'))
-
-            st.success(f"'{letter1}{letter2}' → 원래 글자: '{r1}{r2}'")
+    if st.button("계산하기", key="hill_calc_btn"):
+        from utils import matrix_mod_inverse
+        inv_matrix = matrix_mod_inverse(STAGE3_KEY)
+        pair = np.array([[c1], [c2]])
+        result = np.dot(inv_matrix, pair) % 26
+        r1 = chr(int(result[0][0]) + ord('A'))
+        r2 = chr(int(result[1][0]) + ord('A'))
+        st.success(f"({c1}, {c2}) → 원래 글자: '{r1}{r2}'")
 
     col1, col2 = st.columns([3, 1])
     with col1:
