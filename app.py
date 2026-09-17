@@ -243,19 +243,41 @@ def stage2():
     3. 알파벳을 숫자로 바꿔서(A=0, B=1, ... Z=25) 아래 계산기에 넣어보세요!
     """)
 
-    # 계산 도우미 (아핀 복호화 계산기) - 숫자 직접 입력 방식
-    with st.expander("🧮 아핀 복호화 계산기 (도구)"):
-        st.markdown("암호 글자를 숫자로 바꿔서(A=0, B=1, ... Z=25) 입력하세요")
-        c_num = st.number_input(
-            "암호 숫자 입력 (0~25)",
+    # 계산 도우미 (아핀 복호화 검산기) - 직접 계산 후 확인하는 방식
+    with st.expander("🧮 아핀 복호화 검산기 (직접 계산 후 확인해보세요)"):
+        st.markdown(f"**1단계: a의 역원(a⁻¹) 구하기**  (a × a⁻¹ ≡ 1 (mod 26), a = {STAGE2_A})")
+        user_a_inv = st.number_input(
+            "직접 계산한 a⁻¹ 값을 입력하세요 (0~25)",
             min_value=0, max_value=25, step=1,
-            key="affine_calc_num"
+            key="affine_user_ainv"
         )
-        if st.button("계산하기", key="affine_calc_btn"):
+        if st.button("역원 확인하기", key="affine_check_ainv_btn"):
+            correct_a_inv = mod_inverse(STAGE2_A, 26)
+            if user_a_inv == correct_a_inv:
+                st.success(f"정답이에요! a⁻¹ = {user_a_inv}")
+            else:
+                st.error("아직 틀렸어요. (a × a⁻¹) mod 26 = 1이 되는 값을 다시 찾아보세요.")
+
+        st.markdown("---")
+        st.markdown(f"**2단계: 복호화 공식으로 직접 계산하기**  M = a⁻¹ × (C − b) mod 26  (b = {STAGE2_B})")
+        c_num = st.number_input(
+            "암호 글자를 숫자로 바꿔서 입력 (A=0, B=1, ... Z=25)",
+            min_value=0, max_value=25, step=1,
+            key="affine_calc_c"
+        )
+        user_m = st.number_input(
+            "위 공식으로 직접 계산한 M 값을 입력하세요 (0~25)",
+            min_value=0, max_value=25, step=1,
+            key="affine_user_m"
+        )
+        if st.button("계산 결과 확인하기", key="affine_check_m_btn"):
             a_inv = mod_inverse(STAGE2_A, 26)
-            m_num = (a_inv * (c_num - STAGE2_B)) % 26
-            result_letter = chr(int(m_num) + ord('A'))
-            st.success(f"숫자 {c_num} → 원래 글자: '{result_letter}'")
+            correct_m = (a_inv * (c_num - STAGE2_B)) % 26
+            if user_m == correct_m:
+                result_letter = chr(int(user_m) + ord('A'))
+                st.success(f"정답이에요! 원래 글자는 '{result_letter}'입니다.")
+            else:
+                st.error("계산이 틀렸어요. M = a⁻¹ × (C − b) mod 26 공식을 다시 확인해보세요.")
 
     col1, col2 = st.columns([3, 1])
     with col1:
