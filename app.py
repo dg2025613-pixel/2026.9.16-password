@@ -244,13 +244,13 @@ def stage2():
 
     # 계산 도우미 (아핀 복호화 계산기)
     with st.expander("🧮 아핀 복호화 계산기 (도구)"):
-    st.markdown("암호 글자를 숫자로 바꿔서(A=0, B=1, ... Z=25) 입력하세요")
-    c_num = st.number_input("암호 숫자 입력 (0~25)", min_value=0, max_value=25, step=1, key="affine_calc_num")
-    if st.button("계산하기", key="affine_calc_btn"):
-        a_inv = mod_inverse(STAGE2_A, 26)
-        m_num = (a_inv * (c_num - STAGE2_B)) % 26
-        result_letter = chr(int(m_num) + ord('A'))
-        st.success(f"숫자 {c_num} → 원래 글자: '{result_letter}'")
+        st.markdown("암호 글자를 숫자로 바꿔서(A=0, B=1, ... Z=25) 입력하세요")
+        c_num = st.number_input("암호 숫자 입력 (0~25)", min_value=0, max_value=25, step=1, key="affine_calc_num")
+        if st.button("계산하기", key="affine_calc_btn"):
+            a_inv = mod_inverse(STAGE2_A, 26)
+            m_num = (a_inv * (c_num - STAGE2_B)) % 26
+            result_letter = chr(int(m_num) + ord('A'))
+            st.success(f"숫자 {c_num} → 원래 글자: '{result_letter}'")
     col1, col2 = st.columns([3, 1])
     with col1:
         answer = st.text_input("정답 입력 (영어 대문자)", key="stage2_input").upper().strip()
