@@ -10,7 +10,8 @@ import time
 from utils import (
     caesar_encrypt, caesar_decrypt,
     affine_encrypt, affine_decrypt, VALID_A_VALUES,
-    hill_encrypt, hill_decrypt, det_mod26, mod_inverse
+    hill_encrypt, hill_decrypt, det_mod26, mod_inverse,
+    matrix_mod_inverse
 )
 
 # ================================================
@@ -239,18 +240,23 @@ def stage2():
     💡 **계산 도우미 사용법**
     1. 역원(a⁻¹)을 구해야 해요
     2. 복호화 공식: M = a⁻¹ × (C - b) mod 26
-    3. 아래 계산기를 사용해보세요!
+    3. 알파벳을 숫자로 바꿔서(A=0, B=1, ... Z=25) 아래 계산기에 넣어보세요!
     """)
 
-    # 계산 도우미 (아핀 복호화 계산기)
+    # 계산 도우미 (아핀 복호화 계산기) - 숫자 직접 입력 방식
     with st.expander("🧮 아핀 복호화 계산기 (도구)"):
         st.markdown("암호 글자를 숫자로 바꿔서(A=0, B=1, ... Z=25) 입력하세요")
-        c_num = st.number_input("암호 숫자 입력 (0~25)", min_value=0, max_value=25, step=1, key="affine_calc_num")
+        c_num = st.number_input(
+            "암호 숫자 입력 (0~25)",
+            min_value=0, max_value=25, step=1,
+            key="affine_calc_num"
+        )
         if st.button("계산하기", key="affine_calc_btn"):
             a_inv = mod_inverse(STAGE2_A, 26)
             m_num = (a_inv * (c_num - STAGE2_B)) % 26
             result_letter = chr(int(m_num) + ord('A'))
             st.success(f"숫자 {c_num} → 원래 글자: '{result_letter}'")
+
     col1, col2 = st.columns([3, 1])
     with col1:
         answer = st.text_input("정답 입력 (영어 대문자)", key="stage2_input").upper().strip()
@@ -294,28 +300,28 @@ def stage3():
 
     st.info("""
     💡 **힐 암호는 어려우니 도구를 사용하세요!**
-    아래 계산기에 암호문 2글자씩 넣으면 
+    암호문 글자를 숫자로 바꿔서(A=0, B=1, ... Z=25)  
+    2개씩 짝지어 아래 계산기에 넣으면  
     자동으로 원래 글자를 계산해줘요!
     """)
 
-    # 계산 도우미 (힐 복호화 계산기)
+    # 계산 도우미 (힐 복호화 계산기) - 숫자 직접 입력 방식
     with st.expander("🧮 힐 복호화 계산기 (도구) - 꼭 사용하세요!"):
-    st.markdown("암호문 2글자를 각각 숫자로 바꿔서(A=0, B=1, ... Z=25) 입력하세요")
+        st.markdown("암호문 2글자를 각각 숫자로 바꿔서(A=0, B=1, ... Z=25) 입력하세요")
 
-    col_a, col_b = st.columns(2)
-    with col_a:
-        c1 = st.number_input("숫자 1 (0~25)", min_value=0, max_value=25, step=1, key="hill_calc_n1")
-    with col_b:
-        c2 = st.number_input("숫자 2 (0~25)", min_value=0, max_value=25, step=1, key="hill_calc_n2")
+        col_a, col_b = st.columns(2)
+        with col_a:
+            c1 = st.number_input("숫자 1 (0~25)", min_value=0, max_value=25, step=1, key="hill_calc_n1")
+        with col_b:
+            c2 = st.number_input("숫자 2 (0~25)", min_value=0, max_value=25, step=1, key="hill_calc_n2")
 
-    if st.button("계산하기", key="hill_calc_btn"):
-        from utils import matrix_mod_inverse
-        inv_matrix = matrix_mod_inverse(STAGE3_KEY)
-        pair = np.array([[c1], [c2]])
-        result = np.dot(inv_matrix, pair) % 26
-        r1 = chr(int(result[0][0]) + ord('A'))
-        r2 = chr(int(result[1][0]) + ord('A'))
-        st.success(f"({c1}, {c2}) → 원래 글자: '{r1}{r2}'")
+        if st.button("계산하기", key="hill_calc_btn"):
+            inv_matrix = matrix_mod_inverse(STAGE3_KEY)
+            pair = np.array([[c1], [c2]])
+            result = np.dot(inv_matrix, pair) % 26
+            r1 = chr(int(result[0][0]) + ord('A'))
+            r2 = chr(int(result[1][0]) + ord('A'))
+            st.success(f"({c1}, {c2}) → 원래 글자: '{r1}{r2}'")
 
     col1, col2 = st.columns([3, 1])
     with col1:
