@@ -159,7 +159,24 @@ div[data-testid="stExpander"] {
 
 /* 사이드바 */
 section[data-testid="stSidebar"] {
-    border-right: 1px solid rgba(0, 245, 212, 0.15);
+    background: #0B0F1A !important;
+    border-right: 1px solid rgba(0, 245, 212, 0.2);
+}
+section[data-testid="stSidebar"] > div {
+    background: #0B0F1A !important;
+}
+section[data-testid="stSidebar"] * {
+    color: #E8ECF1 !important;
+}
+section[data-testid="stSidebar"] hr {
+    border-color: rgba(0, 245, 212, 0.18);
+}
+section[data-testid="stSidebar"] [data-testid="stMetricValue"] {
+    color: #00F5D4 !important;
+    text-shadow: 0 0 8px rgba(0, 245, 212, 0.4);
+}
+section[data-testid="stSidebar"] [data-testid="stMetricLabel"] {
+    color: #8FA3BF !important;
 }
 
 /* 코드 블록 (힐 암호 행렬 등) */
