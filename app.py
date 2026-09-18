@@ -1,5 +1,5 @@
 # ================================================
-# 🔐 암호 방탈출 게임 (Streamlit 버전)
+# 🔐 암호 방탈출 게임 (Streamlit 버전) - VAULT 테마
 # 시저 암호 → 아핀 암호 → 힐 암호 순서로 탈출!
 # ================================================
 
@@ -19,10 +19,156 @@ from utils import (
 # ================================================
 
 st.set_page_config(
-    page_title="암호 방탈출 게임",
+    page_title="CIPHER VAULT · 암호 방탈출",
     page_icon="🔐",
     layout="centered"
 )
+
+# ================================================
+# 커스텀 디자인 (VAULT / 해킹 터미널 컨셉)
+# ================================================
+
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+html, body, [class*="css"] {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+h1, h2, h3 {
+    font-family: 'Orbitron', sans-serif !important;
+    letter-spacing: 0.02em;
+}
+
+/* 배경: 은은한 네온 그라디언트 + 격자 무늬 */
+.stApp {
+    background:
+        radial-gradient(circle at 15% 10%, rgba(0, 245, 212, 0.07), transparent 42%),
+        radial-gradient(circle at 85% 0%, rgba(124, 58, 237, 0.10), transparent 45%),
+        #0B0F1A;
+}
+.stApp::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0, 245, 212, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 245, 212, 0.035) 1px, transparent 1px);
+    background-size: 42px 42px;
+    pointer-events: none;
+    z-index: 0;
+}
+.main .block-container {
+    position: relative;
+    z-index: 1;
+}
+
+/* 메인 타이틀 */
+.vault-title {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 800;
+    font-size: 2.15rem;
+    line-height: 1.25;
+    background: linear-gradient(90deg, #00F5D4, #7C3AED);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.15rem;
+}
+.vault-subtitle {
+    color: #8FA3BF;
+    font-size: 0.98rem;
+    margin-bottom: 0.4rem;
+}
+
+/* 단계 진행 dots */
+.stage-dots {
+    display: flex;
+    gap: 0.55rem;
+    margin: 0.9rem 0 1.3rem 0;
+}
+.stage-dot {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem;
+    border: 2px solid rgba(255,255,255,0.14);
+    color: rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.02);
+}
+.stage-dot.done {
+    border-color: #00F5D4;
+    color: #00F5D4;
+    box-shadow: 0 0 12px rgba(0,245,212,0.45);
+}
+.stage-dot.active {
+    border-color: #7C3AED;
+    color: #fff;
+    background: rgba(124,58,237,0.22);
+    box-shadow: 0 0 14px rgba(124,58,237,0.55);
+}
+
+/* 암호문 터미널 박스 */
+.cipher-box {
+    background: #05070D;
+    border: 1px solid rgba(0, 245, 212, 0.4);
+    border-radius: 10px;
+    padding: 1.1rem 1.4rem;
+    margin: 0.7rem 0 1.2rem 0;
+    box-shadow: 0 0 20px rgba(0, 245, 212, 0.13), inset 0 0 24px rgba(0, 245, 212, 0.04);
+}
+.cipher-box .cb-label {
+    color: #6E86A6;
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    margin-bottom: 0.45rem;
+}
+.cipher-box .cb-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.65rem;
+    font-weight: 600;
+    letter-spacing: 0.32em;
+    color: #00F5D4;
+    text-shadow: 0 0 12px rgba(0, 245, 212, 0.55);
+    word-break: break-all;
+}
+
+/* 버튼 */
+div[data-testid="stButton"] button {
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    border: 1px solid rgba(0, 245, 212, 0.5);
+    transition: all 0.15s ease;
+}
+div[data-testid="stButton"] button:hover {
+    box-shadow: 0 0 14px rgba(0, 245, 212, 0.45);
+    transform: translateY(-1px);
+}
+
+/* 진행률 바 그라디언트 */
+div[data-testid="stProgress"] div[role="progressbar"] > div {
+    background-image: linear-gradient(90deg, #00F5D4, #7C3AED) !important;
+}
+
+/* expander (계산기 / 힌트) */
+div[data-testid="stExpander"] {
+    border: 1px solid rgba(124, 58, 237, 0.4);
+    border-radius: 10px;
+}
+
+/* 사이드바 */
+section[data-testid="stSidebar"] {
+    border-right: 1px solid rgba(0, 245, 212, 0.15);
+}
+
+/* 코드 블록 (힐 암호 행렬 등) */
+code {
+    color: #00F5D4 !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 
 # ================================================
 # 게임 데이터 설정 (문제, 정답, 힌트)
@@ -130,12 +276,47 @@ def reset_game():
     st.session_state.wrong_count = {1: 0, 2: 0, 3: 0}
 
 
+def render_cipher(label, text):
+    """암호문을 터미널 스타일 박스로 표시"""
+    st.markdown(f"""
+    <div class="cipher-box">
+        <div class="cb-label">{label}</div>
+        <div class="cb-text">{text}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def render_stage_dots():
+    """상단 단계 진행 표시 (🔒/🔓 아이콘 dots)"""
+    if st.session_state.cleared:
+        icons = ["✅", "✅", "✅"]
+        classes = ["done", "done", "done"]
+    else:
+        icons, classes = [], []
+        for s in [1, 2, 3]:
+            if s < st.session_state.stage:
+                icons.append("✅")
+                classes.append("done")
+            elif s == st.session_state.stage:
+                icons.append("🔓")
+                classes.append("active")
+            else:
+                icons.append("🔒")
+                classes.append("")
+
+    dots_html = '<div class="stage-dots">'
+    for icon, cls in zip(icons, classes):
+        dots_html += f'<div class="stage-dot {cls}">{icon}</div>'
+    dots_html += '</div>'
+    st.markdown(dots_html, unsafe_allow_html=True)
+
+
 # ================================================
 # 사이드바 (게임 정보 표시)
 # ================================================
 
 with st.sidebar:
-    st.title("🎮 게임 정보")
+    st.markdown("### 🕹️ 게임 정보")
     st.metric("현재 점수", f"{st.session_state.score}점")
     st.metric("현재 단계", f"{st.session_state.stage} / 3")
 
@@ -144,7 +325,7 @@ with st.sidebar:
 
     st.divider()
 
-    st.subheader("📖 게임 방법")
+    st.markdown("#### 📖 게임 방법")
     st.markdown("""
     1️⃣ 시저 암호 해독  
     2️⃣ 아핀 암호 해독  
@@ -156,7 +337,7 @@ with st.sidebar:
 
     st.divider()
 
-    if st.button("🔄 게임 초기화"):
+    if st.button("🔄 게임 초기화", use_container_width=True):
         reset_game()
         st.rerun()
 
@@ -165,9 +346,10 @@ with st.sidebar:
 # 메인 화면 - 제목
 # ================================================
 
-st.title("🔐 수학 실험실 탈출 게임")
-st.markdown("### 암호를 풀어서 실험실을 탈출하세요!")
-st.divider()
+st.markdown('<div class="vault-title">🔐 CIPHER VAULT</div>', unsafe_allow_html=True)
+st.markdown('<div class="vault-subtitle">암호를 풀어서 수학 실험실을 탈출하세요</div>', unsafe_allow_html=True)
+
+render_stage_dots()
 
 
 # ================================================
@@ -190,9 +372,9 @@ if st.session_state.stage == 1 and st.session_state.wrong_count[1] == 0:
 # ================================================
 
 def stage1():
-    st.header("🚪 1단계: 시저 암호의 문")
+    st.header("🚪 1단계 · 시저 암호의 문")
     st.markdown(f"**이동 값(shift):** `{STAGE1_SHIFT}`")
-    st.code(STAGE1_CIPHER, language=None)
+    render_cipher("ENCRYPTED MESSAGE", STAGE1_CIPHER)
 
     st.markdown("💡 각 알파벳을 이동 값만큼 **앞으로** 밀어서 원래 글자를 찾아보세요!")
 
@@ -202,7 +384,7 @@ def stage1():
     with col2:
         st.write("")
         st.write("")
-        submit = st.button("제출", key="stage1_submit")
+        submit = st.button("제출", key="stage1_submit", use_container_width=True)
 
     # 힌트 영역
     with st.expander("💡 힌트 보기 (점수 -10점)"):
@@ -230,11 +412,11 @@ def stage1():
 # ================================================
 
 def stage2():
-    st.header("🚪 2단계: 아핀 암호의 문")
+    st.header("🚪 2단계 · 아핀 암호의 문")
 
     st.markdown("**암호화 공식:** `C = (a × M + b) mod 26`")
     st.markdown(f"**a = {STAGE2_A}, b = {STAGE2_B}**")
-    st.code(STAGE2_CIPHER, language=None)
+    render_cipher("ENCRYPTED MESSAGE", STAGE2_CIPHER)
 
     st.info("""
     💡 **계산 도우미 사용법**
@@ -243,8 +425,8 @@ def stage2():
     3. 알파벳을 숫자로 바꿔서(A=0, B=1, ... Z=25) 아래 계산기에 넣어보세요!
     """)
 
-    # 계산 도우미 (아핀 복호화 검산기) - 직접 계산 후 확인하는 방식
-    with st.expander("🧮 아핀 복호화 검산기 (직접 계산 후 확인해보세요)"):
+    # 계산 도우미 (아핀 복호화 검산기)
+    with st.expander("🧮 아핀 복호화 계산기 (직접 계산 후 확인해보세요)"):
         st.markdown(f"**1단계: a의 역원(a⁻¹) 구하기**  (a × a⁻¹ ≡ 1 (mod 26), a = {STAGE2_A})")
         user_a_inv = st.number_input(
             "직접 계산한 a⁻¹ 값을 입력하세요 (0~25)",
@@ -284,7 +466,7 @@ def stage2():
     with col2:
         st.write("")
         st.write("")
-        submit = st.button("제출", key="stage2_submit")
+        submit = st.button("제출", key="stage2_submit", use_container_width=True)
 
     with st.expander("💡 힌트 보기 (점수 -10점)"):
         if st.button("힌트 확인하기", key="stage2_hint_btn"):
@@ -311,13 +493,13 @@ def stage2():
 # ================================================
 
 def stage3():
-    st.header("🚪 3단계: 힐 암호의 문 (최종 관문)")
+    st.header("🚪 3단계 · 힐 암호의 문 (최종 관문)")
 
     st.markdown("**키 행렬:**")
     st.latex(r"""
     K = \begin{pmatrix} 3 & 3 \\ 2 & 5 \end{pmatrix}
     """)
-    st.code(STAGE3_CIPHER, language=None)
+    render_cipher("ENCRYPTED MESSAGE", STAGE3_CIPHER)
 
     st.info("""
     💡 **힐 암호는 어려우니 도구를 사용하세요!**
@@ -350,7 +532,7 @@ def stage3():
     with col2:
         st.write("")
         st.write("")
-        submit = st.button("제출", key="stage3_submit")
+        submit = st.button("제출", key="stage3_submit", use_container_width=True)
 
     with st.expander("💡 힌트 보기 (점수 -10점)"):
         if st.button("힌트 확인하기", key="stage3_hint_btn"):
@@ -380,7 +562,8 @@ def stage3():
 
 def show_clear_screen():
     st.balloons()
-    st.title("🎉 축하합니다! 탈출 성공! 🎉")
+    st.markdown('<div class="vault-title">🎉 VAULT UNLOCKED</div>', unsafe_allow_html=True)
+    st.markdown('<div class="vault-subtitle">축하합니다! 탈출에 성공했습니다.</div>', unsafe_allow_html=True)
 
     final_score, elapsed, time_bonus = calculate_final_score()
 
@@ -409,7 +592,7 @@ def show_clear_screen():
 
     st.markdown("---")
 
-    if st.button("🔄 다시 도전하기"):
+    if st.button("🔄 다시 도전하기", use_container_width=True):
         reset_game()
         st.rerun()
 
