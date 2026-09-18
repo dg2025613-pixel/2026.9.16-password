@@ -34,6 +34,11 @@ st.markdown("""
 
 html, body, [class*="css"] {
     font-family: 'JetBrains Mono', monospace;
+    color: #E8ECF1;
+}
+
+.stApp, .stApp p, .stApp li, .stApp label, .stApp span {
+    color: #E8ECF1;
 }
 
 h1, h2, h3 {
