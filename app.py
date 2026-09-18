@@ -243,78 +243,41 @@ def stage2():
     3. 알파벳을 숫자로 바꿔서(A=0, B=1, ... Z=25) 아래 계산기에 넣어보세요!
     """)
 
-    ```python
-# 계산 도우미 (아핀 복호화 계산기)
-with st.expander("🧮 아핀 복호화 계산기"):
+    # 계산 도우미 (아핀 복호화 검산기) - 직접 계산 후 확인하는 방식
+    with st.expander("🧮 아핀 복호화 검산기 (직접 계산 후 확인해보세요)"):
+        st.markdown(f"**1단계: a의 역원(a⁻¹) 구하기**  (a × a⁻¹ ≡ 1 (mod 26), a = {STAGE2_A})")
+        user_a_inv = st.number_input(
+            "직접 계산한 a⁻¹ 값을 입력하세요 (0~25)",
+            min_value=0, max_value=25, step=1,
+            key="affine_user_ainv"
+        )
+        if st.button("역원 확인하기", key="affine_check_ainv_btn"):
+            correct_a_inv = mod_inverse(STAGE2_A, 26)
+            if user_a_inv == correct_a_inv:
+                st.success(f"정답이에요! a⁻¹ = {user_a_inv}")
+            else:
+                st.error("아직 틀렸어요. (a × a⁻¹) mod 26 = 1이 되는 값을 다시 찾아보세요.")
 
-    st.markdown("""
-    ### 아핀 복호화 계산기
+        st.markdown("---")
+        st.markdown("**2단계: 복호화 공식 계산하기**  M = a⁻¹ × (C − b) mod 26")
+        col_c, col_b = st.columns(2)
+        with col_c:
+            c_num = st.number_input(
+                "암호 글자를 숫자로 바꿔서 입력 (A=0, B=1, ... Z=25)",
+                min_value=0, max_value=25, step=1,
+                key="affine_calc_c"
+            )
+        with col_b:
+            b_num = st.number_input(
+                "b 값 입력",
+                min_value=0, max_value=25, step=1,
+                key="affine_calc_b"
+            )
+        if st.button("계산하기", key="affine_calc_btn"):
+            m_num = (int(user_a_inv) * (c_num - b_num)) % 26
+            result_letter = chr(int(m_num) + ord('A'))
+            st.success(f"→ 원래 글자: '{result_letter}'")
 
-    복호화 공식:
-
-    **M = a⁻¹ × (C - b) mod 26**
-
-    알파벳은 다음과 같이 숫자로 변환합니다.
-
-    A = 0, B = 1, C = 2, ... , Z = 25
-    """)
-
-    # -----------------------------
-    # 1. a의 역원 직접 입력
-    # -----------------------------
-    a_inv = st.number_input(
-        "① a의 역원(a⁻¹)을 입력하세요",
-        min_value=0,
-        max_value=25,
-        step=1,
-        key="affine_a_inv"
-    )
-
-    # -----------------------------
-    # 2. 암호문 알파벳 입력
-    # -----------------------------
-    c_letter = st.selectbox(
-        "② 암호문 알파벳(C)을 선택하세요",
-        list("ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
-        key="affine_c_letter"
-    )
-
-    # 알파벳 → 숫자
-    c_num = ord(c_letter) - ord('A')
-
-    st.write(f"암호문 **{c_letter} → {c_num}**")
-
-    # -----------------------------
-    # 3. b값 입력
-    # -----------------------------
-    b_value = st.number_input(
-        "③ b값을 입력하세요",
-        min_value=0,
-        max_value=25,
-        step=1,
-        key="affine_b_value"
-    )
-
-    # -----------------------------
-    # 4. 자동 계산
-    # -----------------------------
-    st.markdown("---")
-
-    st.markdown("### 🔢 계산 과정")
-
-    st.write(
-        f"M = {a_inv} × ({c_num} - {b_value}) mod 26"
-    )
-
-    m_num = (a_inv * (c_num - b_value)) % 26
-
-    # 숫자 → 알파벳
-    m_letter = chr(m_num + ord('A'))
-
-    st.success(
-        f"🎯 결과: M = {m_num} → **{m_letter}**"
-    )
-```
     col1, col2 = st.columns([3, 1])
     with col1:
         answer = st.text_input("정답 입력 (영어 대문자)", key="stage2_input").upper().strip()
