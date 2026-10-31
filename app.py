@@ -1,128 +1,17 @@
 
 import streamlit as st
 import random
-import time
-import string
 import math
 
-# ==========================================
+# =====================================================
 # 기본 설정
-# ==========================================
+# =====================================================
 
 st.set_page_config(
-    page_title="암호 프로젝트 | 방탈출",
+    page_title="암호 탈출 프로젝트",
     page_icon="🔐",
-    layout="centered"
+    layout="wide"
 )
-
-# ==========================================
-# 어두운 테마 디자인
-# ==========================================
-
-st.markdown("""
-<style>
-.stApp {
-    background: linear-gradient(135deg, #0B1020, #111B32, #15152B);
-    color: #F3F6FF;
-}
-
-[data-testid="stHeader"] {
-    background: rgba(11, 16, 32, 0.92);
-}
-
-[data-testid="stSidebar"] {
-    background: #10182B;
-}
-
-h1, h2, h3, h4, p, li, label,
-.stMarkdown, .stText,
-[data-testid="stMetricValue"],
-[data-testid="stMetricLabel"] {
-    color: #F3F6FF !important;
-}
-
-h1, h2, h3 {
-    font-weight: 850 !important;
-}
-
-.stCaption {
-    color: #C0CBE0 !important;
-}
-
-.stButton > button {
-    background: #6D5DFB;
-    color: white !important;
-    border: 1px solid #887BFF;
-    border-radius: 10px;
-    font-weight: 800;
-    min-height: 42px;
-}
-
-.stButton > button:hover {
-    background: #5142D8;
-    color: white !important;
-}
-
-div[data-testid="stTextInput"] input,
-div[data-testid="stNumberInput"] input {
-    background: #F8FAFF !important;
-    color: #111827 !important;
-    border: 2px solid #7185A8 !important;
-    border-radius: 9px !important;
-}
-
-.challenge {
-    background: #17233B;
-    border: 1px solid #344766;
-    border-left: 6px solid #8B7CFF;
-    border-radius: 12px;
-    padding: 18px;
-    margin: 12px 0;
-    color: #F3F6FF;
-}
-
-.ciphertext {
-    font-size: 2.1rem;
-    font-weight: 900;
-    letter-spacing: 0.16em;
-    color: #9DE7FF;
-    text-align: center;
-    padding: 12px 0;
-}
-
-.info-card {
-    background: #10182B;
-    border: 1px solid #344766;
-    border-radius: 10px;
-    padding: 12px;
-    margin: 8px 0;
-}
-
-div[data-testid="stExpander"] {
-    background: #17233B;
-    border: 1px solid #344766;
-    border-radius: 12px;
-}
-
-div[data-testid="stForm"] {
-    background: #17233B;
-    border: 1px solid #344766;
-    padding: 14px;
-    border-radius: 12px;
-}
-
-hr {
-    border-color: #344766;
-}
-</style>
-""", unsafe_allow_html=True)
-
-
-# ==========================================
-# 정답 단어 목록
-# ==========================================
-
-ALPHABET = string.ascii_uppercase
 
 WORD_BANK = [
     "APPLE", "GRAPE", "BRAIN", "PLANT", "DREAM",
@@ -133,201 +22,243 @@ WORD_BANK = [
     "MOUSE", "GREEN", "BLACK", "WHITE", "BREAD"
 ]
 
-
-# ==========================================
-# 공통 암호 함수
-# ==========================================
-
-def mod_inverse(a, m=26):
-    a %= m
-
-    for x in range(1, m):
-        if (a * x) % m == 1:
-            return x
-
-    return None
+ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
-# ==========================================
-# 1. 시저 암호
-# ==========================================
+# =====================================================
+# 디자인
+# =====================================================
 
-def caesar_encrypt(text, shift):
+st.markdown("""
+<style>
+.stApp {
+    background-color: #101827;
+    color: #F1F5F9;
+}
+
+section[data-testid="stSidebar"] {
+    background-color: #172338;
+}
+
+h1, h2, h3, h4, p, label, span, li {
+    color: #F1F5F9;
+}
+
+.main-title {
+    font-size: 38px;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin-bottom: 5px;
+}
+
+.sub-title {
+    color: #AFC1D8;
+    font-size: 16px;
+    margin-bottom: 25px;
+}
+
+.info-card {
+    background-color: #1B2A41;
+    border: 1px solid #334967;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 12px 0;
+}
+
+.cipher-text {
+    background-color: #263B59;
+    color: #FFFFFF;
+    padding: 18px;
+    border-radius: 10px;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 7px;
+    text-align: center;
+}
+
+.small-text {
+    color: #B8C9DF;
+    font-size: 14px;
+}
+
+div.stButton > button {
+    background-color: #3478F6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    min-height: 42px;
+}
+
+div.stButton > button:hover {
+    background-color: #5590FF;
+    color: white;
+}
+
+div[data-testid="stForm"] {
+    background-color: #172338;
+    border: 1px solid #334967;
+    border-radius: 12px;
+    padding: 18px;
+}
+
+input, textarea {
+    color: #FFFFFF !important;
+}
+
+[data-testid="stMetricValue"] {
+    color: #FFFFFF;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+# =====================================================
+# 암호 관련 함수
+# =====================================================
+
+def caesar_encrypt(word, shift):
     result = ""
 
-    for ch in text:
-        value = ord(ch) - 65
-        encrypted = (value + shift) % 26
-        result += ALPHABET[encrypted]
+    for char in word:
+        number = ord(char) - ord("A")
+        encrypted = (number + shift) % 26
+        result += chr(encrypted + ord("A"))
 
     return result
 
 
-def caesar_decrypt(text, shift):
+def caesar_decrypt(word, shift):
     result = ""
 
-    for ch in text:
-        value = ord(ch) - 65
-        decrypted = (value - shift) % 26
-        result += ALPHABET[decrypted]
+    for char in word:
+        number = ord(char) - ord("A")
+        decrypted = (number - shift) % 26
+        result += chr(decrypted + ord("A"))
 
     return result
 
 
-# ==========================================
-# 2. 아핀 암호
-# ==========================================
-
-def affine_encrypt(text, a, b):
+def affine_encrypt(word, a, b):
     result = ""
 
-    for ch in text:
-        value = ord(ch) - 65
-        encrypted = (a * value + b) % 26
-        result += ALPHABET[encrypted]
+    for char in word:
+        p = ord(char) - ord("A")
+        c = (a * p + b) % 26
+        result += chr(c + ord("A"))
 
     return result
 
 
-def affine_decrypt(text, a, b):
-    inverse = mod_inverse(a, 26)
-
-    if inverse is None:
-        raise ValueError("a의 역원이 존재하지 않습니다.")
-
+def affine_decrypt(word, a, b):
+    inverse = pow(a, -1, 26)
     result = ""
 
-    for ch in text:
-        value = ord(ch) - 65
-        decrypted = (inverse * (value - b)) % 26
-        result += ALPHABET[decrypted]
+    for char in word:
+        c = ord(char) - ord("A")
+        p = (inverse * (c - b)) % 26
+        result += chr(p + ord("A"))
 
     return result
 
 
-# ==========================================
-# 3. 힐 암호
-# ==========================================
+# =====================================================
+# 힐암호 함수
+# 열벡터 방식으로 계산
+# =====================================================
 
-def matrix_det(matrix):
-    return (
-        matrix[0][0] * matrix[1][1]
-        - matrix[0][1] * matrix[1][0]
-    ) % 26
+def hill_encrypt_pair(pair, key):
+    x = ord(pair[0]) - ord("A")
+    y = ord(pair[1]) - ord("A")
+
+    c1 = (key[0][0] * x + key[0][1] * y) % 26
+    c2 = (key[1][0] * x + key[1][1] * y) % 26
+
+    return chr(c1 + 65) + chr(c2 + 65)
 
 
-def matrix_mod_inverse(matrix):
-    a, b = matrix[0]
-    c, d = matrix[1]
+def hill_encrypt(word, key):
+    padded = word
 
-    det = (a * d - b * c) % 26
-    det_inverse = mod_inverse(det, 26)
+    if len(padded) % 2 == 1:
+        padded += "X"
 
-    if det_inverse is None:
+    result = ""
+
+    for i in range(0, len(padded), 2):
+        pair = padded[i:i+2]
+        result += hill_encrypt_pair(pair, key)
+
+    return result
+
+
+def hill_matrix_inverse(key):
+    a, b = key[0]
+    c, d = key[1]
+
+    determinant = (a * d - b * c) % 26
+
+    if math.gcd(determinant, 26) != 1:
         return None
 
-    return [
-        [
-            (det_inverse * d) % 26,
-            (det_inverse * (-b)) % 26
-        ],
-        [
-            (det_inverse * (-c)) % 26,
-            (det_inverse * a) % 26
-        ]
+    det_inverse = pow(determinant, -1, 26)
+
+    inverse = [
+        [(d * det_inverse) % 26,
+         (-b * det_inverse) % 26],
+
+        [(-c * det_inverse) % 26,
+         (a * det_inverse) % 26]
     ]
 
-
-def hill_encrypt(text, matrix):
-    # 홀수 글자라면 마지막에 X 추가
-    if len(text) % 2 == 1:
-        text += "X"
-
-    result = ""
-
-    for i in range(0, len(text), 2):
-
-        x = ord(text[i]) - 65
-        y = ord(text[i + 1]) - 65
-
-        c1 = (
-            matrix[0][0] * x
-            + matrix[0][1] * y
-        ) % 26
-
-        c2 = (
-            matrix[1][0] * x
-            + matrix[1][1] * y
-        ) % 26
-
-        result += ALPHABET[c1]
-        result += ALPHABET[c2]
-
-    return result
+    return inverse
 
 
-def hill_decrypt(text, matrix):
-    inverse = matrix_mod_inverse(matrix)
+def hill_decrypt(ciphertext, key):
+    inverse = hill_matrix_inverse(key)
 
     if inverse is None:
-        raise ValueError("역행렬이 존재하지 않습니다.")
+        return None
 
     result = ""
 
-    for i in range(0, len(text), 2):
+    for i in range(0, len(ciphertext), 2):
+        x = ord(ciphertext[i]) - 65
+        y = ord(ciphertext[i + 1]) - 65
 
-        x = ord(text[i]) - 65
-        y = ord(text[i + 1]) - 65
+        p1 = (inverse[0][0] * x + inverse[0][1] * y) % 26
+        p2 = (inverse[1][0] * x + inverse[1][1] * y) % 26
 
-        p1 = (
-            inverse[0][0] * x
-            + inverse[0][1] * y
-        ) % 26
-
-        p2 = (
-            inverse[1][0] * x
-            + inverse[1][1] * y
-        ) % 26
-
-        result += ALPHABET[p1]
-        result += ALPHABET[p2]
+        result += chr(p1 + 65) + chr(p2 + 65)
 
     return result
 
 
-# ==========================================
-# 힐 암호 키 행렬 생성
-# ==========================================
-
-def new_hill_key():
-
+def make_hill_key():
     while True:
-
-        matrix = [
+        key = [
             [random.randint(0, 25), random.randint(0, 25)],
             [random.randint(0, 25), random.randint(0, 25)]
         ]
 
-        det = matrix_det(matrix)
+        determinant = (
+            key[0][0] * key[1][1]
+            - key[0][1] * key[1][0]
+        ) % 26
 
-        if (
-            math.gcd(det, 26) == 1
-            and matrix_mod_inverse(matrix) is not None
-        ):
-            return matrix
+        if math.gcd(determinant, 26) == 1:
+            return key
 
 
-# ==========================================
-# 단계별 문제 생성
-# ==========================================
+# =====================================================
+# 문제 생성
+# =====================================================
 
 def make_question(stage):
 
     word = random.choice(WORD_BANK)
 
-    # 시저 암호 문제
     if stage == 1:
-
         shift = random.randint(1, 25)
 
         return {
@@ -336,15 +267,13 @@ def make_question(stage):
             "cipher": caesar_encrypt(word, shift)
         }
 
-    # 아핀 암호 문제
     elif stage == 2:
-
-        valid_a = [
-            a for a in range(1, 26)
-            if math.gcd(a, 26) == 1
+        possible_a = [
+            x for x in range(1, 26)
+            if math.gcd(x, 26) == 1
         ]
 
-        a = random.choice(valid_a)
+        a = random.choice(possible_a)
         b = random.randint(0, 25)
 
         return {
@@ -354,859 +283,505 @@ def make_question(stage):
             "cipher": affine_encrypt(word, a, b)
         }
 
-    # 힐 암호 행렬 추론 문제
-    else:
+    elif stage == 3:
+        key = make_hill_key()
 
-        key = new_hill_key()
-
+        # 알려진 평문과 암호문 쌍
         known1 = "BA"
         known2 = "BD"
+
+        known_cipher1 = hill_encrypt_pair(known1, key)
+        known_cipher2 = hill_encrypt_pair(known2, key)
+
+        cipher = hill_encrypt(word, key)
 
         return {
             "word": word,
             "key": key,
+            "cipher": cipher,
             "known1": known1,
             "known2": known2,
-            "known_cipher1": hill_encrypt(known1, key),
-            "known_cipher2": hill_encrypt(known2, key),
-            "cipher": hill_encrypt(word, key)
+            "known_cipher1": known_cipher1,
+            "known_cipher2": known_cipher2
         }
 
 
-# ==========================================
-# 게임 초기화
-# ==========================================
+# =====================================================
+# 게임 상태 관리
+# =====================================================
 
-def reset_game():
-
+if "stage" not in st.session_state:
     st.session_state.stage = 1
-    st.session_state.score = 100
-    st.session_state.start_time = time.time()
 
-    st.session_state.hints = {
+if "questions" not in st.session_state:
+    st.session_state.questions = {}
+
+if "solved" not in st.session_state:
+    st.session_state.solved = {
         1: False,
         2: False,
         3: False
     }
 
-    st.session_state.wrong = {
-        1: 0,
-        2: 0,
-        3: 0
+
+def reset_game():
+    st.session_state.stage = 1
+    st.session_state.questions = {}
+    st.session_state.solved = {
+        1: False,
+        2: False,
+        3: False
     }
 
-    st.session_state.cleared = False
 
-    st.session_state.questions = {
-        1: make_question(1),
-        2: make_question(2),
-        3: make_question(3)
-    }
+def next_stage():
+    current = st.session_state.stage
 
-    for key in list(st.session_state.keys()):
+    if current < 3:
+        st.session_state.stage += 1
 
-        if key.startswith((
-            "answer_",
-            "feedback_",
-            "matrix_",
-            "hill_"
-        )):
-            del st.session_state[key]
+        # 다음 단계에 새 문제 생성
+        new_stage = st.session_state.stage
+        st.session_state.questions[new_stage] = make_question(new_stage)
 
 
-if "stage" not in st.session_state:
-    reset_game()
-
-
-# ==========================================
-# 다음 단계로 이동
-# ==========================================
-
-def go_next_stage():
-
-    st.session_state.stage += 1
-
-    if st.session_state.stage <= 3:
-
-        stage = st.session_state.stage
-
-        # 다음 단계에 진입할 때 새 문제 생성
+def get_question(stage):
+    if stage not in st.session_state.questions:
         st.session_state.questions[stage] = make_question(stage)
 
-        st.session_state.hints[stage] = False
-        st.session_state.wrong[stage] = 0
-
-        for key in list(st.session_state.keys()):
-
-            if key.startswith((
-                f"answer_{stage}",
-                f"feedback_{stage}",
-                "matrix_",
-                "hill_"
-            )):
-                del st.session_state[key]
+    return st.session_state.questions[stage]
 
 
-# ==========================================
-# 힌트 기능
-# ==========================================
+# =====================================================
+# 상단 제목
+# =====================================================
 
-def show_hint(stage, hint_text):
+st.markdown(
+    '<div class="main-title">🔐 암호 탈출 프로젝트</div>',
+    unsafe_allow_html=True
+)
 
-    if st.button(
-        "힌트 보기 (10점 감점)",
-        key=f"hint_btn_{stage}"
-    ):
-
-        if not st.session_state.hints[stage]:
-
-            st.session_state.score = max(
-                0,
-                st.session_state.score - 10
-            )
-
-            st.session_state.hints[stage] = True
-
-    if st.session_state.hints[stage]:
-        st.info(hint_text)
+st.markdown(
+    '<div class="sub-title">'
+    '세 가지 암호를 해독하고 마지막 단계까지 탈출하라!'
+    '</div>',
+    unsafe_allow_html=True
+)
 
 
-# ==========================================
-# 정답 입력 기능
-# ==========================================
+# =====================================================
+# 게임 / 계산기 탭
+# =====================================================
 
-def answer_form(stage, expected, success_message):
-
-    answer = st.text_input(
-        "복호화한 영어 단어를 입력하세요",
-        key=f"answer_{stage}",
-        placeholder="예: APPLE"
-    )
-
-    answer = answer.strip().upper().replace(" ", "")
-
-    if st.button(
-        "정답 확인",
-        key=f"submit_{stage}",
-        use_container_width=True
-    ):
-
-        if not answer:
-
-            st.session_state[f"feedback_{stage}"] = (
-                "warning",
-                "답을 입력해 주세요."
-            )
-
-        elif answer == expected:
-
-            st.session_state[f"feedback_{stage}"] = (
-                "success",
-                success_message
-            )
-
-            if stage < 3:
-                go_next_stage()
-                st.rerun()
-
-            else:
-                st.session_state.cleared = True
-                st.rerun()
-
-        else:
-
-            st.session_state.score = max(
-                0,
-                st.session_state.score - 10
-            )
-
-            st.session_state.wrong[stage] += 1
-
-            st.session_state[f"feedback_{stage}"] = (
-                "error",
-                "정답이 아닙니다. 계산 과정을 다시 확인해 보세요."
-            )
-
-    feedback = st.session_state.get(f"feedback_{stage}")
-
-    if feedback:
-
-        kind, message = feedback
-
-        if kind == "success":
-            st.success(message)
-
-        elif kind == "warning":
-            st.warning(message)
-
-        else:
-            st.error(message)
+game_tab, calculator_tab = st.tabs([
+    "🗝️ 암호 탈출 게임",
+    "🧮 아핀암호 계산기"
+])
 
 
-# ==========================================
-# 사이드바
-# ==========================================
+# =====================================================
+# 암호 탈출 게임
+# =====================================================
 
-with st.sidebar:
+with game_tab:
 
-    st.title("🔐 게임 현황")
+    col1, col2 = st.columns([3, 1])
 
-    st.metric(
-        "현재 점수",
-        f"{st.session_state.score}점"
-    )
+    with col1:
+        st.markdown("### 진행 상황")
 
-    st.metric(
-        "진행 단계",
-        f"{min(st.session_state.stage, 3)} / 3"
-    )
+    with col2:
+        if st.button("🔄 게임 다시 시작", key="restart"):
+            reset_game()
+            st.rerun()
 
-    st.metric(
-        "경과 시간",
-        f"{int(time.time() - st.session_state.start_time)}초"
-    )
+    stage = st.session_state.stage
+
+    progress = stage / 3
+    st.progress(progress)
+
+    st.caption(f"현재 {stage}단계 / 총 3단계")
+
+    q = get_question(stage)
 
     st.divider()
 
-    st.markdown("""
-    **진행 순서**
+    # -------------------------------------------------
+    # 1단계: 시저암호
+    # -------------------------------------------------
 
-    1. 시저 암호
-    2. 아핀 암호
-    3. 힐 암호: 행렬 추론
-    """)
+    if stage == 1:
 
-    st.caption(
-        "각 단계에 진입할 때 새로운 문제가 출제됩니다."
-    )
-
-    if st.button(
-        "게임 처음부터 다시 시작",
-        use_container_width=True
-    ):
-
-        reset_game()
-        st.rerun()
-
-
-# ==========================================
-# 메인 화면
-# ==========================================
-
-st.title("🔐 암호 프로젝트: 방탈출")
-
-st.markdown(
-    "암호의 원리를 이해하고 세 개의 관문을 통과해 탈출하세요."
-)
-
-st.progress(
-    min((st.session_state.stage - 1) / 3, 1.0),
-    text=f"진행률: {min(st.session_state.stage - 1, 3)} / 3 단계 완료"
-)
-
-
-# ==========================================
-# 탈출 성공 화면
-# ==========================================
-
-if st.session_state.cleared:
-
-    st.balloons()
-
-    st.title("🎉 탈출 성공!")
-
-    st.markdown(
-        f"### 최종 점수: {st.session_state.score}점"
-    )
-
-    st.write(
-        f"걸린 시간: {int(time.time() - st.session_state.start_time)}초"
-    )
-
-    st.write(
-        "단계별 오답 횟수: "
-        + " / ".join(
-            f"{i}단계 {st.session_state.wrong[i]}회"
-            for i in (1, 2, 3)
-        )
-    )
-
-    if st.button(
-        "새로운 문제로 다시 도전",
-        use_container_width=True
-    ):
-
-        reset_game()
-        st.rerun()
-
-    st.stop()
-
-
-stage = st.session_state.stage
-q = st.session_state.questions[stage]
-
-
-# ==========================================
-# 1단계: 시저 암호
-# ==========================================
-
-if stage == 1:
-
-    st.header("1단계 · 시저 암호")
-
-    st.markdown("""
-    <div class="challenge">
-    <b>문제</b><br>
-    암호문은 알파벳을 모두 같은 칸 수만큼 이동시켜 만들었습니다.
-    이동량을 확인하고 원래 영어 단어를 찾아보세요.
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown(
-        f'<div class="ciphertext">{q["cipher"]}</div>',
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        f'**암호화 이동량:** 알파벳을 {q["shift"]}칸 앞으로 이동했습니다.'
-    )
-
-    with st.expander(
-        "📘 시저 암호란? 원리와 풀이 방법",
-        expanded=True
-    ):
+        st.markdown("## 1단계. 시저암호")
 
         st.markdown("""
-        **시저 암호**는 알파벳을 일정한 칸 수만큼 이동해
-        다른 글자로 바꾸는 암호입니다.
+        <div class="info-card">
+        <b>시저암호란?</b><br><br>
+        알파벳을 정해진 칸 수만큼 뒤로 이동시켜 암호문을 만드는 방법이다.<br><br>
+        <b>복호화 방법</b><br>
+        암호문을 반대 방향으로 정해진 칸 수만큼 이동시키면 된다.<br><br>
+        예를 들어 3칸 이동했다면 KHOOR는 HELLO가 된다.
+        </div>
+        """, unsafe_allow_html=True)
 
-        **기본 원리**
+        st.markdown("### 암호 해독")
 
-        - A=0, B=1, C=2, ... Z=25로 숫자를 부여합니다.
-        - 암호화할 때는 알파벳을 일정한 칸 수만큼 앞으로 이동합니다.
-        - 복호화할 때는 반대로 같은 칸 수만큼 뒤로 이동합니다.
-        - Z 다음은 A로 이어지므로 나머지 연산(mod 26)을 사용합니다.
-
-        **복호화 공식**
-
-        평문 번호 = (암호문 번호 - 이동량) mod 26
-
-        **푸는 순서**
-
-        1. 암호문 첫 글자를 숫자로 바꿉니다.
-        2. 주어진 이동량을 뺍니다.
-        3. 계산 결과를 26으로 나눈 나머지를 구합니다.
-        4. 결과 숫자를 알파벳으로 바꿉니다.
-        5. 모든 글자에 같은 계산을 반복합니다.
-        """)
-
-    with st.expander("🧮 첫 글자 계산 예시"):
-
-        c = q["cipher"][0]
-        cv = ord(c) - 65
-        pv = (cv - q["shift"]) % 26
-
-        st.write(
-            f"{c}는 {cv}번입니다."
+        st.markdown(
+            f'<div class="cipher-text">{q["cipher"]}</div>',
+            unsafe_allow_html=True
         )
 
-        st.write(
-            f"({cv} - {q['shift']}) mod 26 = {pv}"
+        st.write("")
+        st.info(
+            f"알파벳이 뒤로 이동한 칸 수: **{q['shift']}칸**"
         )
 
-        st.write(
-            f"따라서 첫 글자는 **{ALPHABET[pv]}**입니다."
-        )
+        with st.form("caesar_form"):
+            answer = st.text_input(
+                "해독한 단어를 입력하세요.",
+                max_chars=5
+            )
 
-        st.write("같은 계산을 나머지 글자에도 적용하세요.")
+            submitted = st.form_submit_button("정답 확인")
 
-    show_hint(
-        1,
-        f"정답 단어는 {len(q['word'])}글자입니다. "
-        f"각 글자를 {q['shift']}칸씩 뒤로 이동하세요."
-    )
+        if submitted:
+            if answer.strip().upper() == q["word"]:
+                st.session_state.solved[1] = True
+                st.success("정답입니다! 1단계를 통과했습니다.")
+            else:
+                st.error("정답이 아닙니다. 이동 방향과 칸 수를 다시 확인하세요.")
 
-    answer_form(
-        1,
-        q["word"],
-        f"정답입니다! {q['word']}를 찾았습니다."
-    )
+        if st.session_state.solved[1]:
+            st.success("다음 단계로 이동할 수 있습니다.")
+
+            if st.button("2단계로 이동 ➜"):
+                next_stage()
+                st.rerun()
 
 
-# ==========================================
-# 2단계: 아핀 암호
-# ==========================================
+    # -------------------------------------------------
+    # 2단계: 아핀암호
+    # -------------------------------------------------
 
-elif stage == 2:
+    elif stage == 2:
 
-    st.header("2단계 · 아핀 암호")
-
-    st.markdown("""
-    <div class="challenge">
-    <b>문제</b><br>
-    암호문은 각 알파벳 번호에 곱셈과 덧셈을 적용해 만들었습니다.
-    주어진 a, b 값을 이용해 원래 영어 단어를 찾아보세요.
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown(
-        f'<div class="ciphertext">{q["cipher"]}</div>',
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        f'**키 값:** a = {q["a"]}, b = {q["b"]}'
-    )
-
-    with st.expander(
-        "📘 아핀 암호란? 원리와 풀이 방법",
-        expanded=True
-    ):
+        st.markdown("## 2단계. 아핀암호")
 
         st.markdown("""
-        **아핀 암호**는 각 알파벳을 숫자로 바꾼 다음,
-        곱셈과 덧셈을 적용하는 암호입니다.
+        <div class="info-card">
+        <b>아핀암호란?</b><br><br>
+        알파벳을 숫자로 바꾼 뒤 두 개의 숫자 a, b를 이용해 암호화하는 방법이다.<br><br>
+        <b>암호화 공식</b><br>
+        C = (a × P + b)를 26으로 나눈 나머지<br><br>
+        <b>복호화 공식</b><br>
+        P = a의 역원 × (C - b)를 26으로 나눈 나머지<br><br>
+        A=0, B=1, ..., Z=25로 계산한다.
+        </div>
+        """, unsafe_allow_html=True)
 
-        **기본 원리**
+        st.markdown("### 암호 해독")
 
-        - A=0, B=1, C=2, ... Z=25
-        - M: 평문 숫자
-        - C: 암호문 숫자
-        - a, b: 암호화에 사용하는 키 값
-
-        **암호화 공식**
-
-        C = (aM + b) mod 26
-
-        **복호화 공식**
-
-        M = a⁻¹(C - b) mod 26
-
-        여기서 a⁻¹은 a의 곱셈 역원입니다.
-
-        즉, 다음 식을 만족하는 수입니다.
-
-        (a × a⁻¹) mod 26 = 1
-
-        a와 26이 서로소여야 곱셈 역원이 존재합니다.
-
-        **푸는 순서**
-
-        1. a의 곱셈 역원 a⁻¹을 찾습니다.
-        2. 암호문 글자를 숫자로 바꿉니다.
-        3. 암호문 숫자에서 b를 뺍니다.
-        4. 그 결과에 a⁻¹을 곱하고 26으로 나눈 나머지를 구합니다.
-        5. 결과 숫자를 알파벳으로 바꿉니다.
-        """)
-
-    with st.expander("🧮 첫 글자 계산 예시"):
-
-        inv = mod_inverse(q["a"], 26)
-
-        c = q["cipher"][0]
-        cv = ord(c) - 65
-
-        mv = (inv * (cv - q["b"])) % 26
-
-        st.write(
-            f"a={q['a']}의 곱셈 역원은 {inv}입니다."
+        st.markdown(
+            f'<div class="cipher-text">{q["cipher"]}</div>',
+            unsafe_allow_html=True
         )
 
-        st.write(
-            f"({q['a']} × {inv}) mod 26 = 1"
+        st.write("")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.metric("a 값", q["a"])
+
+        with col2:
+            st.metric("b 값", q["b"])
+
+        st.caption(
+            "a와 26은 서로소여야 하며, a의 역원을 이용해 복호화한다."
         )
 
-        st.write(
-            f"첫 암호문 {c}는 {cv}입니다."
-        )
+        with st.form("affine_form"):
+            answer = st.text_input(
+                "해독한 단어를 입력하세요.",
+                max_chars=5
+            )
+
+            submitted = st.form_submit_button("정답 확인")
+
+        if submitted:
+            if answer.strip().upper() == q["word"]:
+                st.session_state.solved[2] = True
+                st.success("정답입니다! 2단계를 통과했습니다.")
+            else:
+                st.error("정답이 아닙니다. 복호화 공식과 역원을 확인하세요.")
+
+        if st.session_state.solved[2]:
+            st.success("다음 단계로 이동할 수 있습니다.")
+
+            if st.button("3단계로 이동 ➜"):
+                next_stage()
+                st.rerun()
+
+
+    # -------------------------------------------------
+    # 3단계: 힐암호
+    # -------------------------------------------------
+
+    elif stage == 3:
+
+        st.markdown("## 3단계. 힐암호")
+
+        st.markdown("""
+        <div class="info-card">
+        <b>힐암호란?</b><br><br>
+        알파벳을 숫자로 바꾸고, 2×2 행렬을 이용해 두 글자씩 암호화하는 방법이다.<br><br>
+        이번 단계에서는 암호화에 사용된 행렬이 공개되지 않는다.<br>
+        주어진 평문과 암호문 쌍을 이용해 행렬을 직접 찾아야 한다.
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("### ① 행렬 추론에 필요한 정보")
 
         st.write(
-            f"M = {inv} × ({cv} - {q['b']}) mod 26 = {mv}"
+            "다음 두 평문이 각각 어떤 암호문으로 바뀌었는지 확인하자."
         )
 
-        st.write(
-            f"따라서 첫 글자는 **{ALPHABET[mv]}**입니다."
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("**첫 번째 평문·암호문 쌍**")
+            st.markdown(
+                f'<div class="cipher-text">'
+                f'{q["known1"]} → {q["known_cipher1"]}'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+
+        with col2:
+            st.markdown("**두 번째 평문·암호문 쌍**")
+            st.markdown(
+                f'<div class="cipher-text">'
+                f'{q["known2"]} → {q["known_cipher2"]}'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+
+        st.markdown("### ② 암호문 해독")
+
+        st.markdown(
+            f'<div class="cipher-text">{q["cipher"]}</div>',
+            unsafe_allow_html=True
         )
 
-        st.write("같은 계산을 나머지 글자에도 적용하세요.")
+        st.write("")
 
-    show_hint(
-        2,
-        f"정답 단어는 {len(q['word'])}글자입니다. "
-        f"a={q['a']}의 곱셈 역원을 먼저 찾으세요."
-    )
+        st.markdown("### ③ 직접 추론한 행렬 입력")
 
-    answer_form(
-        2,
-        q["word"],
-        f"정답입니다! {q['word']}를 복호화했습니다."
-    )
+        st.caption(
+            "A=0, B=1, ..., Z=25로 바꾼 뒤 행렬의 네 값을 구해 입력하자."
+        )
+
+        with st.form("hill_form"):
+
+            st.write("추론한 2×2 행렬")
+
+            row1 = st.columns(2)
+            with row1[0]:
+                m00 = st.number_input(
+                    "첫째 행 첫째 값",
+                    min_value=0,
+                    max_value=25,
+                    value=0,
+                    step=1,
+                    key="hill_m00"
+                )
+
+            with row1[1]:
+                m01 = st.number_input(
+                    "첫째 행 둘째 값",
+                    min_value=0,
+                    max_value=25,
+                    value=0,
+                    step=1,
+                    key="hill_m01"
+                )
+
+            row2 = st.columns(2)
+            with row2[0]:
+                m10 = st.number_input(
+                    "둘째 행 첫째 값",
+                    min_value=0,
+                    max_value=25,
+                    value=0,
+                    step=1,
+                    key="hill_m10"
+                )
+
+            with row2[1]:
+                m11 = st.number_input(
+                    "둘째 행 둘째 값",
+                    min_value=0,
+                    max_value=25,
+                    value=0,
+                    step=1,
+                    key="hill_m11"
+                )
+
+            answer = st.text_input(
+                "행렬로 복호화한 단어를 입력하세요.",
+                max_chars=5
+            )
+
+            submitted = st.form_submit_button("행렬과 정답 확인")
+
+        if submitted:
+
+            user_key = [
+                [int(m00), int(m01)],
+                [int(m10), int(m11)]
+            ]
+
+            correct_key = q["key"]
+
+            matrix_correct = (
+                user_key == correct_key
+            )
+
+            answer_correct = (
+                answer.strip().upper() == q["word"]
+            )
+
+            if matrix_correct and answer_correct:
+                st.session_state.solved[3] = True
+                st.success("정답입니다! 모든 암호를 해독했습니다.")
+
+            elif not matrix_correct:
+                st.error(
+                    "행렬이 정확하지 않습니다. "
+                    "주어진 두 평문·암호문 쌍을 다시 확인하세요."
+                )
+
+            else:
+                st.error(
+                    "행렬은 맞았습니다! "
+                    "복호화 과정과 마지막 단어를 다시 확인하세요."
+                )
+
+        if st.session_state.solved[3]:
+
+            st.balloons()
+
+            st.markdown("""
+            <div class="info-card">
+            <h2>🎉 탈출 성공!</h2>
+            모든 암호를 해독하고 마지막 단계까지 통과했습니다.
+            </div>
+            """, unsafe_allow_html=True)
+
+            if st.button("새로운 암호 문제 시작"):
+                reset_game()
+                st.rerun()
 
 
-# ==========================================
-# 3단계: 힐 암호 행렬 추론
-# ==========================================
+# =====================================================
+# 아핀암호 계산기
+# =====================================================
 
-else:
+with calculator_tab:
 
-    st.header("3단계 · 힐 암호: 행렬 추론")
+    st.markdown("## 🧮 아핀암호 계산기")
 
     st.markdown("""
-    <div class="challenge">
-    <b>문제</b><br>
-    암호화에 사용된 2×2 키 행렬을 직접 추론한 뒤,
-    그 행렬로 목표 암호문을 복호화하세요.
-    아래에 주어진 두 쌍의 평문과 암호문은 같은 키 행렬을 사용했습니다.
+    <div class="info-card">
+    암호문 또는 평문을 입력하고 a, b 값을 설정하면
+    아핀암호를 암호화하거나 복호화할 수 있다.
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("### 알려진 평문-암호문 쌍")
+    mode = st.radio(
+        "계산 방식",
+        ["복호화", "암호화"],
+        horizontal=True,
+        key="affine_calculator_mode"
+    )
+
+    text = st.text_input(
+        "문자열 입력",
+        placeholder="예: MXZHL",
+        key="affine_calculator_text"
+    )
 
     col1, col2 = st.columns(2)
 
     with col1:
-
-        st.markdown(
-            '<div class="info-card">'
-            '<b>평문</b>'
-            '<div class="ciphertext">BA</div>'
-            '<b>암호문</b>'
-            f'<div class="ciphertext">{q["known_cipher1"]}</div>'
-            '</div>',
-            unsafe_allow_html=True
+        calc_a = st.number_input(
+            "a 값",
+            min_value=0,
+            max_value=25,
+            value=9,
+            step=1,
+            key="calculator_a"
         )
 
     with col2:
-
-        st.markdown(
-            '<div class="info-card">'
-            '<b>평문</b>'
-            '<div class="ciphertext">BD</div>'
-            '<b>암호문</b>'
-            f'<div class="ciphertext">{q["known_cipher2"]}</div>'
-            '</div>',
-            unsafe_allow_html=True
-        )
-
-    st.markdown("### 목표 암호문")
-
-    st.markdown(
-        f'<div class="ciphertext">{q["cipher"]}</div>',
-        unsafe_allow_html=True
-    )
-
-    with st.expander(
-        "📘 힐 암호란? 원리와 풀이 방법",
-        expanded=True
-    ):
-
-        st.markdown(r"""
-        **힐 암호**는 알파벳을 숫자로 바꾼 다음,
-        두 글자씩 묶어 행렬 곱셈으로 암호화하는 방법입니다.
-
-        **기본 약속**
-
-        - A=0, B=1, C=2, ... Z=25
-        - 두 글자 XY를 세로 벡터로 나타냅니다.
-        - 키 행렬 K와 평문 벡터 P를 곱해 암호문 벡터 C를 만듭니다.
-
-        암호화 공식:
-
-        \[
-        C=KP\pmod{26}
-        \]
-
-        복호화 공식:
-
-        \[
-        P=K^{-1}C\pmod{26}
-        \]
-
-        **행렬 추론 방법**
-
-        1. 평문 BA는 숫자로 바꾸면 (1, 0)입니다.
-        2. 평문 BD는 숫자로 바꾸면 (1, 3)입니다.
-        3. BA의 암호문으로 키 행렬의 첫 번째 열을 알아냅니다.
-        4. BD의 암호문을 이용해 두 번째 열을 계산합니다.
-        5. 완성한 행렬을 입력하고 확인합니다.
-        6. 행렬이 맞으면 역행렬을 이용해 목표 암호문을 복호화합니다.
-
-        원래 단어의 글자 수가 홀수라면 암호화할 때 마지막에 X를 붙입니다.
-        답을 입력할 때는 원래 단어만 입력하면 됩니다.
-        """)
-
-    with st.expander("🧮 행렬을 직접 추론하는 방법"):
-
-        st.markdown(r"""
-        키 행렬을 다음과 같이 놓겠습니다.
-
-        \[
-        K=
-        \begin{pmatrix}
-        a&b\\
-        c&d
-        \end{pmatrix}
-        \]
-
-        **① 첫 번째 평문 BA 이용하기**
-
-        \[
-        BA=
-        \begin{pmatrix}
-        1\\
-        0
-        \end{pmatrix}
-        \]
-
-        따라서
-
-        \[
-        K
-        \begin{pmatrix}
-        1\\
-        0
-        \end{pmatrix}
-        =
-        \begin{pmatrix}
-        a\\
-        c
-        \end{pmatrix}
-        \]
-
-        즉, BA의 암호문 숫자 두 개가 행렬의 첫 번째 열입니다.
-
-        **② 두 번째 평문 BD 이용하기**
-
-        \[
-        BD=
-        \begin{pmatrix}
-        1\\
-        3
-        \end{pmatrix}
-        \]
-
-        따라서
-
-        \[
-        K
-        \begin{pmatrix}
-        1\\
-        3
-        \end{pmatrix}
-        =
-        \begin{pmatrix}
-        a+3b\\
-        c+3d
-        \end{pmatrix}
-        \pmod{26}
-        \]
-
-        첫 번째 열을 이미 구했으므로 두 번째 열을 계산할 수 있습니다.
-
-        **③ 두 번째 열 계산하기**
-
-        \[
-        3^{-1}\equiv9\pmod{26}
-        \]
-
-        따라서 두 번째 암호문의 첫 번째 숫자를 C₁,
-        두 번째 숫자를 C₂라고 하면
-
-        \[
-        b=9(C_1-a)\pmod{26}
-        \]
-
-        \[
-        d=9(C_2-c)\pmod{26}
-        \]
-
-        이렇게 a, b, c, d를 모두 구하면 키 행렬이 완성됩니다.
-        """)
-
-    show_hint(
-        3,
-        "BA=(1,0)이므로 BA의 암호문에서 첫 번째 열을 바로 알 수 있습니다. "
-        "BD=(1,3)이므로 두 번째 열은 "
-        "(BD 암호문 숫자 - 첫 번째 열 숫자) × 9 mod 26으로 구합니다."
-    )
-
-    st.markdown("### 추론한 키 행렬 입력")
-
-    st.caption("각 숫자는 0부터 25 사이의 정수입니다.")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        k11 = st.number_input(
-            "첫째 행 · 첫째 열",
+        calc_b = st.number_input(
+            "b 값",
             min_value=0,
             max_value=25,
-            value=0,
+            value=1,
             step=1,
-            key="matrix_k11"
+            key="calculator_b"
         )
 
-        k21 = st.number_input(
-            "둘째 행 · 첫째 열",
-            min_value=0,
-            max_value=25,
-            value=0,
-            step=1,
-            key="matrix_k21"
-        )
+    if st.button("계산하기", key="affine_calculate"):
 
-    with col2:
+        clean_text = text.strip().upper()
 
-        k12 = st.number_input(
-            "첫째 행 · 둘째 열",
-            min_value=0,
-            max_value=25,
-            value=0,
-            step=1,
-            key="matrix_k12"
-        )
+        if not clean_text:
+            st.warning("문자열을 입력해 주세요.")
 
-        k22 = st.number_input(
-            "둘째 행 · 둘째 열",
-            min_value=0,
-            max_value=25,
-            value=0,
-            step=1,
-            key="matrix_k22"
-        )
+        elif not clean_text.isalpha() or not clean_text.isascii():
+            st.error("영어 알파벳만 입력할 수 있습니다.")
 
-    if st.button(
-        "행렬 확인",
-        key="check_matrix",
-        use_container_width=True
-    ):
-
-        entered = [
-            [int(k11), int(k12)],
-            [int(k21), int(k22)]
-        ]
-
-        if entered == q["key"]:
-
-            st.session_state["hill_matrix_verified"] = True
-
-            st.success(
-                "행렬 추론 성공! 이제 목표 암호문을 복호화하세요."
+        elif math.gcd(int(calc_a), 26) != 1:
+            st.error(
+                "a와 26은 서로소여야 합니다. "
+                "예: 1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25"
             )
 
         else:
 
-            st.session_state["hill_matrix_verified"] = False
-
-            st.session_state.score = max(
-                0,
-                st.session_state.score - 5
-            )
-
-            st.session_state.wrong[3] += 1
-
-            st.error(
-                "행렬이 맞지 않습니다. "
-                "알려진 두 쌍과 mod 26 계산을 다시 확인하세요."
-            )
-
-    # 행렬이 정답일 때만 복호화 단계 공개
-
-    if st.session_state.get("hill_matrix_verified", False):
-
-        st.success("추론한 키 행렬이 맞습니다!")
-
-        key = q["key"]
-
-        st.latex(
-            r"K=\begin{pmatrix}%d&%d\\%d&%d\end{pmatrix}"
-            % (key[0][0], key[0][1], key[1][0], key[1][1])
-        )
-
-        inverse = matrix_mod_inverse(key)
-
-        with st.expander("🧮 목표 암호문 복호화 계산"):
-
-            st.write("① 키 행렬의 역행렬을 구합니다.")
-
-            st.latex(
-                r"K^{-1}=\begin{pmatrix}%d&%d\\%d&%d\end{pmatrix}"
-                % (
-                    inverse[0][0],
-                    inverse[0][1],
-                    inverse[1][0],
-                    inverse[1][1]
-                )
-            )
-
-            st.write("② 목표 암호문을 두 글자씩 나눕니다.")
-
-            first_pair = q["cipher"][:2]
-
-            cx = ord(first_pair[0]) - 65
-            cy = ord(first_pair[1]) - 65
-
-            px = (
-                inverse[0][0] * cx
-                + inverse[0][1] * cy
-            ) % 26
-
-            py = (
-                inverse[1][0] * cx
-                + inverse[1][1] * cy
-            ) % 26
-
-            st.write(
-                f"첫 묶음 {first_pair} → ({cx}, {cy})"
-            )
-
-            st.write(
-                f"복호화 결과: ({px}, {py})"
-            )
-
-            st.write(
-                f"따라서 첫 두 글자는 **{ALPHABET[px]}{ALPHABET[py]}**입니다."
-            )
-
-            st.write(
-                "나머지 묶음에도 같은 계산을 반복하세요."
-            )
-
-            if len(q["word"]) % 2 == 1:
-
-                st.caption(
-                    "원래 단어가 홀수 글자여서 마지막에 X가 붙었습니다. "
-                    "답에는 원래 단어만 입력하세요."
+            if mode == "복호화":
+                result = affine_decrypt(
+                    clean_text,
+                    int(calc_a),
+                    int(calc_b)
                 )
 
-        show_hint(
-            3,
-            "목표 암호문을 두 글자씩 나누고, "
-            "각 숫자 벡터에 K⁻¹을 곱한 뒤 mod 26을 적용하세요."
-        )
+                st.success(f"복호화 결과: {result}")
 
-        answer_form(
-            3,
-            q["word"],
-            f"정답입니다! {q['word']}를 복호화해 최종 관문을 통과했습니다."
-        )
+                inverse = pow(int(calc_a), -1, 26)
 
-    else:
+                st.info(
+                    f"a의 역원은 {inverse}입니다."
+                )
 
-        st.info(
-            "먼저 키 행렬 네 숫자를 추론해 입력하세요. "
-            "행렬이 맞아야 평문 답안을 제출할 수 있습니다."
-        )
+            else:
+                result = affine_encrypt(
+                    clean_text,
+                    int(calc_a),
+                    int(calc_b)
+                )
+
+                st.success(f"암호화 결과: {result}")
 
 
-# ==========================================
+# =====================================================
 # 하단 안내
-# ==========================================
+# =====================================================
 
 st.divider()
 
 st.caption(
-    "정답은 지정된 단어 목록에서만 출제됩니다. "
-    "각 단계의 문제는 새로 시작하거나 다음 단계로 이동할 때 바뀝니다."
+    "암호 탈출 프로젝트 | Caesar Cipher · Affine Cipher · Hill Cipher"
 )
